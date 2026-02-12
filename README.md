@@ -43,3 +43,7 @@ Open `frontend/index.html` in browser.
 ---
 
 Built with ❤️ for productivity and learning.
+## 📸 Project UI
+
+![Home Page](screenshots/home.png)
+

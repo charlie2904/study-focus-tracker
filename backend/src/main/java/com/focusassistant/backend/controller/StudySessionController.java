@@ -4,8 +4,9 @@ import com.focusassistant.backend.dao.StudySessionDao;
 import com.focusassistant.backend.model.StudySession;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import java.util.List;
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
 public class StudySessionController {

@@ -8,7 +8,7 @@ backend/target/
 backend/.idea/
 
 # Environment files
-backend/src/main/resources/application.properties
+
 
 # Mac
 .DS_Store

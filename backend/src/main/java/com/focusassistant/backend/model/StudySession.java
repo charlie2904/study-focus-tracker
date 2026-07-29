@@ -1,27 +1,34 @@
 package com.focusassistant.backend.model;
 
+import jakarta.persistence.*;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "study_sessions")
 public class StudySession {
 
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String subject;
-    private int duration; // minutes
-    private String sessionDate;
+    private int duration;
+    private int plannedDuration;
+    private int focusRating;
+    private double focusScore;
+
+    private LocalDate sessionDate;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 
     public StudySession() {
     }
 
-    public StudySession(String subject, int duration, String sessionDate) {
-        this.subject = subject;
-        this.duration = duration;
-        this.sessionDate = sessionDate;
-    }
-
-    public int getId() {
+    public Long getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getSubject() {
@@ -40,11 +47,43 @@ public class StudySession {
         this.duration = duration;
     }
 
-    public String getSessionDate() {
+    public LocalDate getSessionDate() {
         return sessionDate;
     }
 
-    public void setSessionDate(String sessionDate) {
+    public void setSessionDate(LocalDate sessionDate) {
         this.sessionDate = sessionDate;
     }
+
+    public int getPlannedDuration() {
+        return plannedDuration;
+    }
+
+    public void setPlannedDuration(int plannedDuration) {
+        this.plannedDuration = plannedDuration;
+    }
+
+    public int getFocusRating() {
+        return focusRating;
+    }
+
+    public void setFocusRating(int focusRating) {
+        this.focusRating = focusRating;
+    }
+
+    public double getFocusScore() {
+        return focusScore;
+    }
+
+    public void setFocusScore(double focusScore) {
+        this.focusScore = focusScore;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
 }

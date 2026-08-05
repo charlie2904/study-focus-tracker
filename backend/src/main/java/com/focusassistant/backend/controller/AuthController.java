@@ -1,11 +1,15 @@
 package com.focusassistant.backend.controller;
 
 import com.focusassistant.backend.dto.AuthRequest;
+import com.focusassistant.backend.dto.AuthResponse;
 import com.focusassistant.backend.model.User;
 import com.focusassistant.backend.repository.UserRepository;
 import com.focusassistant.backend.security.JwtService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,9 +28,13 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    // SIGNUP
     @PostMapping("/signup")
-    public String signup(@RequestBody AuthRequest request) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public AuthResponse signup(@Valid @RequestBody AuthRequest request) {
+
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
+        }
 
         User user = new User();
         user.setUsername(request.getUsername());
@@ -34,20 +42,21 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return "User registered successfully";
+        return new AuthResponse(jwtService.generateToken(user.getUsername()));
     }
 
-    // LOGIN
     @PostMapping("/login")
-    public String login(@RequestBody AuthRequest request) {
+    public AuthResponse login(@Valid @RequestBody AuthRequest request) {
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Invalid username or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
-        return jwtService.generateToken(user.getUsername());
+        return new AuthResponse(jwtService.generateToken(user.getUsername()));
     }
 }

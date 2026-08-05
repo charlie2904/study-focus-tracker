@@ -1,16 +1,16 @@
 package com.focusassistant.backend.service;
 
-import com.focusassistant.backend.dto.StudySessionRequest;
-import com.focusassistant.backend.model.StudySession;
-import com.focusassistant.backend.repository.StudySessionRepository;
-import jakarta.validation.Valid;
-import org.springframework.stereotype.Service;
 import com.focusassistant.backend.dto.StudyAnalyticsResponse;
+import com.focusassistant.backend.model.StudySession;
+import com.focusassistant.backend.model.User;
+import com.focusassistant.backend.repository.StudySessionRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.*;
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StudyAnalyticsService {
@@ -21,30 +21,9 @@ public class StudyAnalyticsService {
         this.repository = repository;
     }
 
-    // ===== SAVE SESSION WITH AI LOGIC =====
-    public StudySession saveSessionWithFocus(StudySessionRequest request) {
+    public StudyAnalyticsResponse getSummary(User user) {
 
-        StudySession session = new StudySession();
-        session.setSubject(request.getSubject());
-        session.setDuration(request.getDuration());
-        session.setPlannedDuration(request.getPlannedDuration());
-        session.setFocusRating(request.getFocusRating());
-        session.setSessionDate(request.getSessionDate());
-
-        // Calculate focus score
-        double focusScore = 0;
-        if (request.getPlannedDuration() != 0) {
-            focusScore = ((double) request.getDuration() / request.getPlannedDuration())
-                    * request.getFocusRating() * 20;
-        }
-
-        session.setFocusScore(focusScore);
-
-        return repository.save(session);
-    }
-    public StudyAnalyticsResponse getSummary() {
-
-        List<StudySession> sessions = repository.findAll();
+        List<StudySession> sessions = repository.findByUser(user);
 
         long totalSessions = sessions.size();
 
@@ -57,15 +36,15 @@ public class StudyAnalyticsService {
                 .average()
                 .orElse(0.0);
 
-        // 🔥 Find Best Study Day
+        averageFocusScore = Math.round(averageFocusScore * 100.0) / 100.0;
+
         Map<DayOfWeek, Integer> minutesPerDay = new HashMap<>();
 
         for (StudySession session : sessions) {
             LocalDate date = session.getSessionDate();
+            if (date == null) continue;
             DayOfWeek day = date.getDayOfWeek();
-
-            minutesPerDay.put(day,
-                    minutesPerDay.getOrDefault(day, 0) + session.getDuration());
+            minutesPerDay.put(day, minutesPerDay.getOrDefault(day, 0) + session.getDuration());
         }
 
         String bestDay = minutesPerDay.entrySet().stream()
@@ -80,14 +59,13 @@ public class StudyAnalyticsService {
                 bestDay
         );
     }
-    // ===== ANALYTICS METHODS =====
-    public long getTotalSessions() {
-        return repository.count();
+
+    public long getTotalSessions(User user) {
+        return repository.countByUser(user);
     }
 
-    public int getTotalStudyMinutes() {
-        List<StudySession> sessions = repository.findAll();
-        return sessions.stream()
+    public int getTotalStudyMinutes(User user) {
+        return repository.findByUser(user).stream()
                 .mapToInt(StudySession::getDuration)
                 .sum();
     }

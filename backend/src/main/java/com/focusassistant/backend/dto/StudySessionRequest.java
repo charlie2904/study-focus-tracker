@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 
 import java.time.LocalDate;
 
@@ -25,7 +26,8 @@ public class StudySessionRequest {
     @Max(value = 5, message = "Focus rating must be between 1 and 5")
     private Integer focusRating;
 
-    @NotBlank(message = "Session date is required")
+    @NotNull(message = "Session date is required")
+    @PastOrPresent(message = "Session date cannot be in the future")
     private LocalDate sessionDate;
 
     // Getters and Setters
@@ -66,7 +68,7 @@ public class StudySessionRequest {
         return sessionDate;
     }
 
-    public void setSessionDate(@NotBlank LocalDate sessionDate) {
+    public void setSessionDate(LocalDate sessionDate) {
         this.sessionDate = sessionDate;
     }
 }

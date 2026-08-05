@@ -8,7 +8,9 @@ import com.focusassistant.backend.repository.StudySessionRepository;
 import com.focusassistant.backend.repository.UserRepository;
 import com.focusassistant.backend.security.JwtService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,17 +31,39 @@ public class StudySessionController {
         this.userRepository = userRepository;
     }
 
+    // ================= HELPER: resolve the logged-in user =================
+    private User currentUser(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or malformed token");
+        }
+        String token = authHeader.substring(7);
+        String username = jwtService.extractUsername(token);
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+    }
+
+    // ================= HELPER: entity -> DTO =================
+    private StudySessionResponse toResponse(StudySession s, String username) {
+        return new StudySessionResponse(
+                s.getId(),
+                s.getSubject(),
+                s.getDuration(),
+                s.getPlannedDuration(),
+                s.getFocusRating(),
+                s.getFocusScore(),
+                s.getSessionDate(),
+                username
+        );
+    }
+
     // ================= SAVE SESSION =================
     @PostMapping("/sessions")
     public StudySessionResponse saveSession(
             @Valid @RequestBody StudySessionRequest request,
             @RequestHeader("Authorization") String authHeader) {
 
-        String token = authHeader.substring(7); // remove "Bearer "
-        String username = jwtService.extractUsername(token);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = currentUser(authHeader);
 
         StudySession session = new StudySession();
         session.setSubject(request.getSubject());
@@ -48,53 +72,51 @@ public class StudySessionController {
         session.setFocusRating(request.getFocusRating());
         session.setSessionDate(request.getSessionDate());
 
-        // ✅ Proper Focus Score Logic
-        double focusScore = ((double) request.getDuration()
-                / request.getPlannedDuration()) * request.getFocusRating() * 20;
-
+        // Focus score, guarded against divide-by-zero
+        double focusScore = 0.0;
+        if (request.getPlannedDuration() > 0) {
+            focusScore = ((double) request.getDuration()
+                    / request.getPlannedDuration()) * request.getFocusRating() * 20;
+        }
         session.setFocusScore(Math.round(focusScore * 100.0) / 100.0);
 
-        // IMPORTANT: link user
         session.setUser(user);
 
         StudySession saved = repository.save(session);
 
-        // ✅ Return DTO (NO PASSWORD LEAK)
-        return new StudySessionResponse(
-                saved.getId(),
-                saved.getSubject(),
-                saved.getDuration(),
-                saved.getPlannedDuration(),
-                saved.getFocusRating(),
-                saved.getFocusScore(),
-                saved.getSessionDate(),
-                user.getUsername()
-        );
+        return toResponse(saved, user.getUsername());
     }
 
     // ================= GET USER SESSIONS =================
     @GetMapping("/sessions")
-    public List<StudySession> getUserSessions(
+    public List<StudySessionResponse> getUserSessions(
             @RequestHeader("Authorization") String authHeader) {
 
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
+        User user = currentUser(authHeader);
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return repository.findByUser(user);
+        return repository.findByUser(user)
+                .stream()
+                .map(s -> toResponse(s, user.getUsername()))
+                .toList();
     }
 
     // ================= DELETE SESSION =================
     @DeleteMapping("/sessions/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSession(
             @PathVariable Long id,
             @RequestHeader("Authorization") String authHeader) {
 
-        String token = authHeader.substring(7);
-        jwtService.extractUsername(token); // just validate token
+        User user = currentUser(authHeader);
 
-        repository.deleteById(id);
+        StudySession session = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        // Ownership check — you can only delete your own sessions
+        if (!session.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your session");
+        }
+
+        repository.delete(session);
     }
 }

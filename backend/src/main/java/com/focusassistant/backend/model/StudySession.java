@@ -3,6 +3,7 @@ package com.focusassistant.backend.model;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "study_sessions")
@@ -19,10 +20,21 @@ public class StudySession {
     private double focusScore;
 
     private LocalDate sessionDate;
+
+    // ===== New fields =====
+
+    private LocalTime startTime;
+
+    private Integer breaksTaken;
+
+    private Integer interruptions;
+
+    @Column(length = 500)
+    private String notes;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
 
     public StudySession() {
     }
@@ -78,6 +90,39 @@ public class StudySession {
     public void setFocusScore(double focusScore) {
         this.focusScore = focusScore;
     }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public Integer getBreaksTaken() {
+        return breaksTaken;
+    }
+
+    public void setBreaksTaken(Integer breaksTaken) {
+        this.breaksTaken = breaksTaken;
+    }
+
+    public Integer getInterruptions() {
+        return interruptions;
+    }
+
+    public void setInterruptions(Integer interruptions) {
+        this.interruptions = interruptions;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
     public User getUser() {
         return user;
     }
@@ -85,5 +130,4 @@ public class StudySession {
     public void setUser(User user) {
         this.user = user;
     }
-
 }

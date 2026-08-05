@@ -1,6 +1,7 @@
 package com.focusassistant.backend.dto;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class StudySessionResponse {
 
@@ -11,6 +12,10 @@ public class StudySessionResponse {
     private int focusRating;
     private double focusScore;
     private LocalDate sessionDate;
+    private LocalTime startTime;
+    private Integer breaksTaken;
+    private Integer interruptions;
+    private String notes;
     private String username;
 
     public StudySessionResponse(Long id,
@@ -20,6 +25,10 @@ public class StudySessionResponse {
                                 int focusRating,
                                 double focusScore,
                                 LocalDate sessionDate,
+                                LocalTime startTime,
+                                Integer breaksTaken,
+                                Integer interruptions,
+                                String notes,
                                 String username) {
 
         this.id = id;
@@ -29,6 +38,10 @@ public class StudySessionResponse {
         this.focusRating = focusRating;
         this.focusScore = focusScore;
         this.sessionDate = sessionDate;
+        this.startTime = startTime;
+        this.breaksTaken = breaksTaken;
+        this.interruptions = interruptions;
+        this.notes = notes;
         this.username = username;
     }
 
@@ -40,5 +53,9 @@ public class StudySessionResponse {
     public int getFocusRating() { return focusRating; }
     public double getFocusScore() { return focusScore; }
     public LocalDate getSessionDate() { return sessionDate; }
+    public LocalTime getStartTime() { return startTime; }
+    public Integer getBreaksTaken() { return breaksTaken; }
+    public Integer getInterruptions() { return interruptions; }
+    public String getNotes() { return notes; }
     public String getUsername() { return username; }
 }

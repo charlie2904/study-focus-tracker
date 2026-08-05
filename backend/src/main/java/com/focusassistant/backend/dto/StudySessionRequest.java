@@ -5,8 +5,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class StudySessionRequest {
 
@@ -29,6 +31,17 @@ public class StudySessionRequest {
     @NotNull(message = "Session date is required")
     @PastOrPresent(message = "Session date cannot be in the future")
     private LocalDate sessionDate;
+
+    private LocalTime startTime;
+
+    @Min(value = 0, message = "Breaks cannot be negative")
+    private Integer breaksTaken;
+
+    @Min(value = 0, message = "Interruptions cannot be negative")
+    private Integer interruptions;
+
+    @Size(max = 500, message = "Notes cannot exceed 500 characters")
+    private String notes;
 
     // Getters and Setters
 
@@ -70,5 +83,37 @@ public class StudySessionRequest {
 
     public void setSessionDate(LocalDate sessionDate) {
         this.sessionDate = sessionDate;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public Integer getBreaksTaken() {
+        return breaksTaken;
+    }
+
+    public void setBreaksTaken(Integer breaksTaken) {
+        this.breaksTaken = breaksTaken;
+    }
+
+    public Integer getInterruptions() {
+        return interruptions;
+    }
+
+    public void setInterruptions(Integer interruptions) {
+        this.interruptions = interruptions;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

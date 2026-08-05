@@ -53,12 +53,17 @@ public class StudySessionController {
                 s.getFocusRating(),
                 s.getFocusScore(),
                 s.getSessionDate(),
+                s.getStartTime(),
+                s.getBreaksTaken(),
+                s.getInterruptions(),
+                s.getNotes(),
                 username
         );
     }
 
     // ================= SAVE SESSION =================
     @PostMapping("/sessions")
+    @ResponseStatus(HttpStatus.CREATED)
     public StudySessionResponse saveSession(
             @Valid @RequestBody StudySessionRequest request,
             @RequestHeader("Authorization") String authHeader) {
@@ -71,6 +76,12 @@ public class StudySessionController {
         session.setPlannedDuration(request.getPlannedDuration());
         session.setFocusRating(request.getFocusRating());
         session.setSessionDate(request.getSessionDate());
+
+        // New optional fields
+        session.setStartTime(request.getStartTime());
+        session.setBreaksTaken(request.getBreaksTaken());
+        session.setInterruptions(request.getInterruptions());
+        session.setNotes(request.getNotes());
 
         // Focus score, guarded against divide-by-zero
         double focusScore = 0.0;

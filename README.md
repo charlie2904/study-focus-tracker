@@ -160,6 +160,9 @@ Storing enum position means reordering the enum silently corrupts existing rows.
 **`Instant`, not `LocalDateTime`.**
 Durations need an absolute, timezone-independent point in time.
 
+**Tests run against H2, not MySQL.**
+Integration tests boot the full Spring context and hit real endpoints through MockMvc. They use an in-memory H2 database created fresh per run, so they never touch development data and need no local setup to pass.
+
 ---
 
 ## Project structure
@@ -186,7 +189,7 @@ frontend/src
 ## Roadmap
 
 - [ ] AI study coach — LLM insights grounded in the user's own session history
-- [ ] Unit and integration tests (JUnit + Mockito + MockMvc)
+- [x] Unit and integration tests — 39 tests (JUnit 5 + Mockito + MockMvc + H2)
 - [ ] Dedicated aggregation endpoints (weekday/subject rollups currently computed client-side)
 - [ ] Focus-by-hour analysis using the `startTime` column
 - [ ] Docker Compose for one-command setup
